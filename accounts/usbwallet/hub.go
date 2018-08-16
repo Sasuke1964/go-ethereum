@@ -97,6 +97,7 @@ func newHub(scheme string, vendorID uint16, productIDs []uint16, usageID uint16,
 // Wallets implements accounts.Backend, returning all the currently tracked USB
 // devices that appear to be hardware wallets.
 func (hub *Hub) Wallets() []accounts.Wallet {
+	println("IN WALLETS2")
 	// Make sure the list of wallets is up to date
 	hub.refreshWallets()
 

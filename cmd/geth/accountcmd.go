@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"runtime/debug"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -193,14 +194,18 @@ nodes.
 )
 
 func accountList(ctx *cli.Context) error {
+	println("IN ACCOUNTCMD.GO:ACCOUNTLIST\n")
 	stack, _ := makeConfigNode(ctx)
 	var index int
 	for _, wallet := range stack.AccountManager().Wallets() {
+		println("in ACCOUNTCMD.GO:ACCOUNTLIST outer for loop")
 		for _, account := range wallet.Accounts() {
+			println("in ACCOUNTCMD.GO:ACCOUNTLIST inner for loop")
 			fmt.Printf("Account #%d: {%x} %s\n", index, account.Address, &account.URL)
 			index++
 		}
 	}
+	debug.PrintStack()
 	return nil
 }
 

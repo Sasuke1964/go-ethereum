@@ -122,6 +122,7 @@ func (am *Manager) Backends(kind reflect.Type) []Backend {
 
 // Wallets returns all signer accounts registered under this account manager.
 func (am *Manager) Wallets() []Wallet {
+	println("IN WALLETS3")
 	am.lock.RLock()
 	defer am.lock.RUnlock()
 
@@ -132,6 +133,7 @@ func (am *Manager) Wallets() []Wallet {
 
 // Wallet retrieves the wallet associated with a particular URL.
 func (am *Manager) Wallet(url string) (Wallet, error) {
+	println("IN WALLET")
 	am.lock.RLock()
 	defer am.lock.RUnlock()
 

@@ -162,6 +162,7 @@ var (
 var GOBIN, _ = filepath.Abs(filepath.Join("build", "bin"))
 
 func executablePath(name string) string {
+	println("IN CI.GO:EXECUTABLEPATH\n")
 	if runtime.GOOS == "windows" {
 		name += ".exe"
 	}
@@ -169,6 +170,7 @@ func executablePath(name string) string {
 }
 
 func main() {
+	println("IN CI.GO:MAIN\n")
 	log.SetFlags(log.Lshortfile)
 
 	if _, err := os.Stat(filepath.Join("build", "ci.go")); os.IsNotExist(err) {
@@ -206,6 +208,7 @@ func main() {
 // Compiling
 
 func doInstall(cmdline []string) {
+	println("IN CI.GO:DOINSTALL\n")
 	var (
 		arch = flag.String("arch", "", "Architecture to cross build for")
 		cc   = flag.String("cc", "", "C compiler to cross build with")
@@ -276,6 +279,7 @@ func doInstall(cmdline []string) {
 }
 
 func buildFlags(env build.Environment) (flags []string) {
+	println("IN CI.GO:BUILDFLAGS\n")
 	var ld []string
 	if env.Commit != "" {
 		ld = append(ld, "-X", "main.gitCommit="+env.Commit)
@@ -291,10 +295,12 @@ func buildFlags(env build.Environment) (flags []string) {
 }
 
 func goTool(subcmd string, args ...string) *exec.Cmd {
+	println("IN CI.GO:GOTOOL\n")
 	return goToolArch(runtime.GOARCH, os.Getenv("CC"), subcmd, args...)
 }
 
 func goToolArch(arch string, cc string, subcmd string, args ...string) *exec.Cmd {
+	println("IN CI.GO:GOTOOLARCH\n")
 	cmd := build.GoTool(subcmd, args...)
 	cmd.Env = []string{"GOPATH=" + build.GOPATH()}
 	if arch == "" || arch == runtime.GOARCH {
@@ -320,6 +326,7 @@ func goToolArch(arch string, cc string, subcmd string, args ...string) *exec.Cmd
 // "tests" also includes static analysis tools such as vet.
 
 func doTest(cmdline []string) {
+	println("IN CI.GO:DOTEST\n")
 	var (
 		coverage = flag.Bool("coverage", false, "Whether to record code coverage")
 	)
@@ -350,6 +357,7 @@ func doTest(cmdline []string) {
 
 // runs gometalinter on requested packages
 func doLint(cmdline []string) {
+	println("IN CI.GO:DOLINT\n")
 	flag.CommandLine.Parse(cmdline)
 
 	packages := []string{"./..."}
@@ -385,6 +393,7 @@ func doLint(cmdline []string) {
 
 // Release Packaging
 func doArchive(cmdline []string) {
+	println("IN CI.GO:DOARCHIVE\n")
 	var (
 		arch   = flag.String("arch", runtime.GOARCH, "Architecture cross packaging")
 		atype  = flag.String("type", "zip", "Type of archive to write (zip|tar)")
@@ -430,6 +439,7 @@ func doArchive(cmdline []string) {
 }
 
 func archiveBasename(arch string, archiveVersion string) string {
+	println("IN CI.GO:ARCHIVEBASENAME\n")
 	platform := runtime.GOOS + "-" + arch
 	if arch == "arm" {
 		platform += os.Getenv("GOARM")
@@ -444,6 +454,7 @@ func archiveBasename(arch string, archiveVersion string) string {
 }
 
 func archiveUpload(archive string, blobstore string, signer string) error {
+	println("IN CI.GO:ARCHIVEUPLOAD\n")
 	// If signing was requested, generate the signature files
 	if signer != "" {
 		pgpkey, err := base64.StdEncoding.DecodeString(os.Getenv(signer))
@@ -475,6 +486,7 @@ func archiveUpload(archive string, blobstore string, signer string) error {
 
 // skips archiving for some build configurations.
 func maybeSkipArchive(env build.Environment) {
+	println("IN CI.GO:MAYBESKIPARCHIVE\n")
 	if env.IsPullRequest {
 		log.Printf("skipping because this is a PR build")
 		os.Exit(0)
@@ -491,6 +503,7 @@ func maybeSkipArchive(env build.Environment) {
 
 // Debian Packaging
 func doDebianSource(cmdline []string) {
+	println("IN CI.GO:DODEBIANSOURCE\n")
 	var (
 		signer  = flag.String("signer", "", `Signing key name, also used as package author`)
 		upload  = flag.String("upload", "", `Where to upload the source package (usually "ppa:ethereum/ethereum")`)
@@ -535,6 +548,7 @@ func doDebianSource(cmdline []string) {
 }
 
 func makeWorkdir(wdflag string) string {
+	println("IN CI.GO:MAKEWORKDIR\n")
 	var err error
 	if wdflag != "" {
 		err = os.MkdirAll(wdflag, 0744)
@@ -548,6 +562,7 @@ func makeWorkdir(wdflag string) string {
 }
 
 func isUnstableBuild(env build.Environment) bool {
+	println("IN CI.GO:ISUNSTABLEBUILD\n")
 	if env.Tag != "" {
 		return false
 	}
@@ -584,6 +599,7 @@ type debExecutable struct {
 // Package returns the name of the package if present, or
 // fallbacks to BinaryName
 func (d debExecutable) Package() string {
+	println("IN CI.GO:PACKAGE\n")
 	if d.PackageName != "" {
 		return d.PackageName
 	}
@@ -591,6 +607,7 @@ func (d debExecutable) Package() string {
 }
 
 func newDebMetadata(distro, author string, env build.Environment, t time.Time, name string, version string, exes []debExecutable) debMetadata {
+	println("IN CI.GO:NEWDEBMETADATA\n")
 	if author == "" {
 		// No signing key, use default author.
 		author = "Ethereum Builds <fjl@ethereum.org>"
@@ -609,6 +626,7 @@ func newDebMetadata(distro, author string, env build.Environment, t time.Time, n
 // Name returns the name of the metapackage that depends
 // on all executable packages.
 func (meta debMetadata) Name() string {
+	println("IN CI.GO:NAME\n")
 	if isUnstableBuild(meta.Env) {
 		return meta.PackageName + "-unstable"
 	}
@@ -617,6 +635,7 @@ func (meta debMetadata) Name() string {
 
 // VersionString returns the debian version of the packages.
 func (meta debMetadata) VersionString() string {
+	println("IN CI.GO:VERSIONSTRING\n")
 	vsn := meta.Version
 	if meta.Env.Buildnum != "" {
 		vsn += "+build" + meta.Env.Buildnum
@@ -629,6 +648,7 @@ func (meta debMetadata) VersionString() string {
 
 // ExeList returns the list of all executable packages.
 func (meta debMetadata) ExeList() string {
+	println("IN CI.GO:EXELIST\n")
 	names := make([]string, len(meta.Executables))
 	for i, e := range meta.Executables {
 		names[i] = meta.ExeName(e)
@@ -638,6 +658,7 @@ func (meta debMetadata) ExeList() string {
 
 // ExeName returns the package name of an executable package.
 func (meta debMetadata) ExeName(exe debExecutable) string {
+	println("IN CI.GO:EXENAME\n")
 	if isUnstableBuild(meta.Env) {
 		return exe.Package() + "-unstable"
 	}
@@ -649,6 +670,7 @@ func (meta debMetadata) ExeName(exe debExecutable) string {
 // This is needed so that we make sure that "ethereum" package,
 // depends on and installs "ethereum-swarm"
 func (meta debMetadata) EthereumSwarmPackageName() string {
+	println("IN CI.GO:ETHEREUMSWARMPACKAGENAME\n")
 	if isUnstableBuild(meta.Env) {
 		return debSwarm.Name + "-unstable"
 	}
@@ -658,6 +680,7 @@ func (meta debMetadata) EthereumSwarmPackageName() string {
 // ExeConflicts returns the content of the Conflicts field
 // for executable packages.
 func (meta debMetadata) ExeConflicts(exe debExecutable) string {
+	println("IN CI.GO:EXECONFLICTS\n")
 	if isUnstableBuild(meta.Env) {
 		// Set up the conflicts list so that the *-unstable packages
 		// cannot be installed alongside the regular version.
@@ -673,6 +696,7 @@ func (meta debMetadata) ExeConflicts(exe debExecutable) string {
 }
 
 func stageDebianSource(tmpdir string, meta debMetadata) (pkgdir string) {
+	println("IN CI.GO:STAGEDEBIANSOURCE\n")
 	pkg := meta.Name() + "-" + meta.VersionString()
 	pkgdir = filepath.Join(tmpdir, pkg)
 	if err := os.Mkdir(pkgdir, 0755); err != nil {

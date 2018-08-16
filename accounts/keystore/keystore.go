@@ -118,6 +118,7 @@ func (ks *KeyStore) init(keydir string) {
 // Wallets implements accounts.Backend, returning all single-key wallets from the
 // keystore directory.
 func (ks *KeyStore) Wallets() []accounts.Wallet {
+	println("IN WALLETS1")
 	// Make sure the list of wallets is in sync with the account cache
 	ks.refreshWallets()
 

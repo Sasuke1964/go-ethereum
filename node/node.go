@@ -539,6 +539,7 @@ func (n *Node) InstanceDir() string {
 
 // AccountManager retrieves the account manager used by the protocol stack.
 func (n *Node) AccountManager() *accounts.Manager {
+	println("IN ACCOUNTMANAGER")
 	return n.accman
 }
 
